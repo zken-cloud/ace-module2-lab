@@ -68,7 +68,7 @@ env:
   CM_DL_PROJECT: cmoc-prod
   CM_DL_LOCATION: us
   CM_DL_REPO: codemender-cli-production
-  CM_DL_VERSION: stable
+  CM_DL_VERSION: "0.3.0"
   CM_ASSET_ZIP: cm-linux-amd64.zip
   # Project whose CodeMender preview entitlement + ADC quota are used. MUST be
   # allowlisted for the codemender-preview agent (e.g. cloud-llm-preview1). The
