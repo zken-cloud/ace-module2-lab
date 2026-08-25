@@ -13,10 +13,92 @@ import { challenges } from '../data/datacache'
 import * as security from '../lib/insecurity'
 import * as utils from '../lib/utils'
 
+function isMalicious (data: string): boolean {
+  // Decode potential JS unicode, hex, octal, and general backslash escape sequences
+  const normalized = data
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/\\([0-7]{1,3})/g, (_, octal) => String.fromCharCode(parseInt(octal, 8)))
+    .replace(/\\(.)/g, '$1')
+
+  const blockedWordsCI = [
+    'this',
+    'constructor',
+    'prototype',
+    '__proto__',
+    '__defineGetter__',
+    '__defineSetter__',
+    '__lookupGetter__',
+    '__lookupSetter__',
+    'getPrototypeOf',
+    'setPrototypeOf',
+    'getOwnPropertyNames',
+    'getOwnPropertySymbols',
+    'getOwnPropertyDescriptor',
+    'getOwnPropertyDescriptors',
+    'defineProperties',
+    'defineProperty',
+    'assign',
+    'create',
+    'process',
+    'global',
+    'globalThis',
+    'window',
+    'document',
+    'self',
+    'parent',
+    'top',
+    'require',
+    'import',
+    'module',
+    'exports',
+    'eval',
+    'exec',
+    'execSync',
+    'spawn',
+    'spawnSync',
+    'child_process',
+    'fs',
+    'Reflect',
+    'Proxy',
+    'Symbol'
+  ]
+
+  const blockedWordsCS = [
+    'Function',
+    'Object',
+    'Array',
+    'String',
+    'Number',
+    'Boolean',
+    'RegExp'
+  ]
+
+  for (const word of blockedWordsCI) {
+    const regex = new RegExp(`\\b${word}\\b`, 'i')
+    if (regex.test(normalized)) {
+      return true
+    }
+  }
+
+  for (const word of blockedWordsCS) {
+    const regex = new RegExp(`\\b${word}\\b`)
+    if (regex.test(normalized)) {
+      return true
+    }
+  }
+
+  return false
+}
+
 export function b2bOrder () {
   return ({ body }: Request, res: Response, next: NextFunction) => {
     if (utils.isChallengeEnabled(challenges.rceChallenge) || utils.isChallengeEnabled(challenges.rceOccupyChallenge)) {
       const orderLinesData = body.orderLinesData || ''
+      if (isMalicious(orderLinesData)) {
+        next(new Error('Potential sandbox escape detected'))
+        return
+      }
       try {
         const sandbox = { safeEval, orderLinesData }
         vm.createContext(sandbox)
