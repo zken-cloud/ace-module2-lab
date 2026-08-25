@@ -245,7 +245,7 @@ jobs:
         run: |
           set -uo pipefail
           echo "Scanning '$SCAN_PATH' (source is uploaded to the CodeMender backend)..."
-          cm find "$SCAN_PATH" -y 2>&1 | tee "$RUNNER_TEMP/cm-find.cm.log"
+          cm find "$SCAN_PATH" -y -v 2>&1 | tee "$RUNNER_TEMP/cm-find.cm.log"
 
       - name: Export Security Report (cm report -f json)
         if: always()
