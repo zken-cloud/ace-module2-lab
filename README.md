@@ -1,3 +1,10 @@
+> **CodeMender lab fork.** This repository is a fork of
+> [juice-shop/juice-shop](https://github.com/juice-shop/juice-shop) **v20.1.1**
+> (MIT, upstream [`LICENSE`](LICENSE) preserved) used as the target app for a
+> CodeMender CI/CD guardrail lab. It is not the official OWASP Juice Shop
+> project. The lab itself is described in [`CODEMENDER-LAB.md`](CODEMENDER-LAB.md);
+> everything below is the unmodified upstream README.
+
 # ![Juice Shop Logo](https://raw.githubusercontent.com/juice-shop/juice-shop/master/frontend/src/assets/public/images/JuiceShop_Logo_100px.png) OWASP Juice Shop
 
 [![OWASP Flagship](https://img.shields.io/badge/owasp-flagship%20project-48A646.svg)](https://owasp.org/projects/#sec-flagships)

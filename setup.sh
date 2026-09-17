@@ -9,10 +9,17 @@ echo "   CodeMender Guardrail Lab Environment Setup"
 echo "==========================================="
 echo ""
 
-# 1. Configure git settings if not already configured
-echo "[1/5] Configuring global Git user settings..."
-git config --global user.email "student@qwiklabs.net"
-git config --global user.name "Student"
+# 1. Make sure a git identity exists (keep the existing global one, else ask)
+echo "[1/5] Checking global Git user settings..."
+if [ -z "$(git config --global user.name || true)" ]; then
+  read -rp "Git user.name: " GIT_NAME
+  git config --global user.name "$GIT_NAME"
+fi
+if [ -z "$(git config --global user.email || true)" ]; then
+  read -rp "Git user.email: " GIT_EMAIL
+  git config --global user.email "$GIT_EMAIL"
+fi
+echo "Committing as: $(git config --global user.name) <$(git config --global user.email)>"
 
 # 2. Init git repository and commit starter files locally
 echo "[2/5] Initializing Git repository locally..."

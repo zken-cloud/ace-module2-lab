@@ -80,3 +80,4 @@ cm-security-report.json
 .codemender/
 *.cm.log
 .cm_project
+__pycache__/

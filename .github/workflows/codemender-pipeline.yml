@@ -70,12 +70,12 @@ env:
   CM_DL_REPO: codemender-cli-production
   CM_DL_VERSION: "0.3.0"
   CM_ASSET_ZIP: cm-linux-amd64.zip
-  # Project whose CodeMender preview entitlement + ADC quota are used. MUST be
-  # allowlisted for the codemender-preview agent (e.g. cloud-llm-preview1). The
-  # GCP_SA_KEY service account needs access here (aiplatform) and read on the
-  # cmoc-prod download repo above. Provided per-repo as the CM_PROJECT secret
-  # (instructor hands out the project id); falls back to cloud-llm-preview1.
-  CM_PROJECT: ${{ secrets.CM_PROJECT || 'cloud-llm-preview1' }}
+  # Project whose CodeMender entitlement + ADC quota are used. MUST be a project
+  # entitled to CodeMender. The GCP_SA_KEY service account needs access here
+  # (aiplatform) and read on the cmoc-prod download repo above. Provided
+  # per-repo as the CM_PROJECT secret (required; the "Authenticate to Google
+  # Cloud" step fails fast if it is missing).
+  CM_PROJECT: ${{ secrets.CM_PROJECT }}
   # How many of the top-ranked HIGH/CRITICAL findings to verify in one run.
   # Verify is slow (builds+runs the app per finding), so the default is 1 to stay
   # within the job budget; raise it via the workflow_dispatch `verify_limit` input.
@@ -142,6 +142,10 @@ jobs:
           # identity. Authenticate a service account (from the GCP_SA_KEY secret)
           # for BOTH gcloud (the download) and ADC (cm's Vertex AI calls at
           # runtime — find/verify/fix). gcloud is preinstalled on ubuntu-latest.
+          if [ -z "${CM_PROJECT:-}" ]; then
+            echo "::error title=Missing CM_PROJECT::Add the id of a CodeMender-entitled Google Cloud project as the CM_PROJECT secret."
+            exit 1
+          fi
           if [ -z "${GCP_SA_KEY:-}" ]; then
             echo "::error title=Missing GCP_SA_KEY::Add a service-account key JSON as the GCP_SA_KEY secret. It needs read on the cmoc-prod download repo and CodeMender/Vertex access on ${CM_PROJECT}."
             exit 1

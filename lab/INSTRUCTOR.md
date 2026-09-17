@@ -37,15 +37,28 @@ You provide it as two repository secrets (students paste the values you hand out
 - **`GCP_SA_KEY`** — a **service-account JSON key**. The SA must have **read** on
   the `cmoc-prod` / `codemender-cli-production` Artifact Registry repo (the `cm`
   download) **and** CodeMender / `aiplatform` access on the entitled project.
-- **`CM_PROJECT`** — the **CodeMender-entitled project id**. Only a project
-  allowlisted for the `codemender-preview` agent works (e.g. `cloud-llm-preview1`);
-  a non-entitled project returns `403 Unsupported agent interaction`.
+- **`CM_PROJECT`** — the **CodeMender-entitled project id** (`<CM_PROJECT>`).
+  Only a project entitled to CodeMender works; a non-entitled project returns
+  `403 Unsupported agent interaction`.
 
-Mint **one** service account for the whole cohort, grant it those roles, download
-a JSON key, and hand the key + project id to students. The workflow's
-"Authenticate to Google Cloud" step activates the SA for both `gcloud` (the
-download) and ADC (cm's Vertex AI calls). No per-repo release to publish, and the
-built-in `GITHUB_TOKEN` is only used to open the fix PR.
+**Do not mint one JSON key and hand it to the whole cohort.** A long-lived key
+shared by every student cannot be attributed or revoked per person, and it will
+leak. Prefer, in this order:
+
+1. **Workload Identity Federation** — let each student repo's GitHub Actions
+   OIDC token impersonate the SA (`google-github-actions/auth` with
+   `workload_identity_provider` + `service_account`, scoped to the student's
+   repo). No key exists at all. This needs the "Authenticate to Google Cloud"
+   step swapped for that action and `id-token: write` in `permissions`.
+2. **Per-student short-lived credentials** — one SA (or one key) per student,
+   issued for the class window and deleted afterwards, so each `GCP_SA_KEY` is
+   individually revocable.
+
+Either way, the "Authenticate to Google Cloud" step (as shipped, or swapped for
+the WIF action) is what exposes the identity to both `gcloud` (the download) and
+ADC (cm's Vertex AI calls). If a cohort-wide key was ever distributed, delete/rotate it now. No
+per-repo release to publish, and the built-in `GITHUB_TOKEN` is only used to
+open the fix PR.
 
 > **Confirm access before class:** the `cmoc-prod` download repo is gated to
 > preview-entitled identities. Verify your SA can actually pull the binary —
